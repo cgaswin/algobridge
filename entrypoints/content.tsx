@@ -10,9 +10,13 @@ import {
 import { OverlayApp } from '../src/ui/overlay/OverlayApp';
 
 export default defineContentScript({
-  matches: ['*://leetcode.com/problems/*'],
+  matches: ['*://leetcode.com/*', '*://www.leetcode.com/*'],
   cssInjectionMode: 'ui',
   async main(ctx) {
+    if (!window.location.pathname.startsWith('/problems/')) {
+      return;
+    }
+
     const ui = await createShadowRootUi(ctx, {
       name: 'algobridge-overlay',
       position: 'inline',

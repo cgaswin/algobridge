@@ -11,5 +11,11 @@ export default defineConfig({
     description:
       'Connects DSA problems on LeetCode to practical real-world industry scenarios.',
     permissions: ['tabs', 'storage'],
+    browser_action: {
+      default_title: 'Open AlgoBridge',
+    },
+    action: {
+      default_title: 'Open AlgoBridge',
+    },
   },
 });

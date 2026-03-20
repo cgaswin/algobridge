@@ -4,7 +4,13 @@ import {
 } from '../src/shared/messaging';
 
 export default defineBackground(() => {
-  browser.action.onClicked.addListener(async (tab) => {
+  const toolbarAction = browser.action ?? browser.browserAction;
+  if (toolbarAction?.onClicked == null) {
+    console.warn('AlgoBridge: toolbar action API unavailable in this browser context.');
+    return;
+  }
+
+  toolbarAction.onClicked.addListener(async (tab) => {
     if (tab.id == null) {
       return;
     }
