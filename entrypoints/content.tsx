@@ -7,16 +7,13 @@ import {
   isOpenOverlayMessage,
   OVERLAY_OPEN_REQUESTED_EVENT,
 } from '../src/shared/messaging';
+import { dispatchLocationChanged } from '../src/shared/location-events';
 import { OverlayApp } from '../src/ui/overlay/OverlayApp';
 
 export default defineContentScript({
   matches: ['*://leetcode.com/*', '*://www.leetcode.com/*'],
   cssInjectionMode: 'ui',
   async main(ctx) {
-    if (!window.location.pathname.startsWith('/problems/')) {
-      return;
-    }
-
     const ui = await createShadowRootUi(ctx, {
       name: 'algobridge-overlay',
       position: 'inline',
@@ -39,6 +36,33 @@ export default defineContentScript({
 
     ui.mount();
 
+    let lastPathname = window.location.pathname;
+
+    const emitLocationChangeIfNeeded = () => {
+      const nextPathname = window.location.pathname;
+      if (nextPathname === lastPathname) {
+        return;
+      }
+
+      lastPathname = nextPathname;
+      dispatchLocationChanged(nextPathname);
+    };
+
+    const originalPushState = history.pushState;
+    const originalReplaceState = history.replaceState;
+
+    history.pushState = function patchedPushState(...args) {
+      originalPushState.apply(this, args);
+      emitLocationChangeIfNeeded();
+    };
+
+    history.replaceState = function patchedReplaceState(...args) {
+      originalReplaceState.apply(this, args);
+      emitLocationChangeIfNeeded();
+    };
+
+    window.addEventListener('popstate', emitLocationChangeIfNeeded);
+
     const handleRuntimeMessage = (message: unknown) => {
       if (!isOpenOverlayMessage(message)) {
         return;
@@ -50,6 +74,9 @@ export default defineContentScript({
     browser.runtime.onMessage.addListener(handleRuntimeMessage);
     ctx.onInvalidated(() => {
       browser.runtime.onMessage.removeListener(handleRuntimeMessage);
+      window.removeEventListener('popstate', emitLocationChangeIfNeeded);
+      history.pushState = originalPushState;
+      history.replaceState = originalReplaceState;
     });
   },
 });

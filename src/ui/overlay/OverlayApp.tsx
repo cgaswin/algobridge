@@ -23,6 +23,7 @@ import {
   getScenarioProviderMode,
 } from '@/src/features/scenario/scenario-service';
 import type { ProblemScenarioData } from '@/src/features/scenario/types';
+import { LOCATION_CHANGED_EVENT } from '@/src/shared/location-events';
 import { OVERLAY_OPEN_REQUESTED_EVENT } from '@/src/shared/messaging';
 
 type OverlayState =
@@ -59,19 +60,23 @@ export function OverlayApp() {
   const [overlayState, setOverlayState] = React.useState<OverlayState>({ status: 'idle' });
   const [selectedVote, setSelectedVote] = React.useState<HelpfulnessVote | null>(null);
 
+  const refreshScenarioFromCurrentUrl = React.useCallback(async () => {
+    setOverlayState({ status: 'loading' });
+    setSelectedVote(null);
+
+    const nextState = await loadScenario();
+    setOverlayState(nextState);
+
+    if (nextState.status === 'success') {
+      const existingVote = await getHelpfulnessVote(nextState.data.problem.slug);
+      setSelectedVote(existingVote);
+    }
+  }, []);
+
   React.useEffect(() => {
-    const onOpenRequested = async () => {
+    const onOpenRequested = () => {
       setOpen(true);
-      setOverlayState({ status: 'loading' });
-      setSelectedVote(null);
-
-      const nextState = await loadScenario();
-      setOverlayState(nextState);
-
-      if (nextState.status === 'success') {
-        const existingVote = await getHelpfulnessVote(nextState.data.problem.slug);
-        setSelectedVote(existingVote);
-      }
+      void refreshScenarioFromCurrentUrl();
     };
 
     window.addEventListener(OVERLAY_OPEN_REQUESTED_EVENT, onOpenRequested);
@@ -79,7 +84,23 @@ export function OverlayApp() {
     return () => {
       window.removeEventListener(OVERLAY_OPEN_REQUESTED_EVENT, onOpenRequested);
     };
-  }, []);
+  }, [refreshScenarioFromCurrentUrl]);
+
+  React.useEffect(() => {
+    const onLocationChanged = () => {
+      if (!open) {
+        return;
+      }
+
+      void refreshScenarioFromCurrentUrl();
+    };
+
+    window.addEventListener(LOCATION_CHANGED_EVENT, onLocationChanged);
+
+    return () => {
+      window.removeEventListener(LOCATION_CHANGED_EVENT, onLocationChanged);
+    };
+  }, [open, refreshScenarioFromCurrentUrl]);
 
   const handleVote = React.useCallback(
     async (vote: HelpfulnessVote) => {
