@@ -18,7 +18,10 @@ import {
   saveHelpfulnessVote,
 } from '@/src/features/feedback/storage';
 import type { HelpfulnessVote } from '@/src/features/feedback/types';
-import { getScenarioByPageUrl } from '@/src/features/scenario/scenario-service';
+import {
+  getScenarioByPageUrl,
+  getScenarioProviderMode,
+} from '@/src/features/scenario/scenario-service';
 import type { ProblemScenarioData } from '@/src/features/scenario/types';
 import { OVERLAY_OPEN_REQUESTED_EVENT } from '@/src/shared/messaging';
 
@@ -124,6 +127,9 @@ export function OverlayApp() {
                   ? 'This problem maps directly to practical engineering constraints in production systems.'
                   : 'Preparing real-world context for this problem.'}
               </DialogDescription>
+              <p className="text-xs text-muted-foreground/80">
+                Provider mode: {getScenarioProviderMode()}
+              </p>
             </div>
           </div>
         </DialogHeader>

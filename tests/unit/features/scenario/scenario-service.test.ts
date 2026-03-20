@@ -1,8 +1,15 @@
 import { describe, expect, it } from 'vitest';
 
-import { getScenarioByPageUrl } from '@/src/features/scenario/scenario-service';
+import {
+  getScenarioByPageUrl,
+  getScenarioProviderMode,
+} from '@/src/features/scenario/scenario-service';
 
 describe('getScenarioByPageUrl', () => {
+  it('uses dummy provider mode by default', () => {
+    expect(getScenarioProviderMode()).toBe('dummy');
+  });
+
   it('returns known dummy scenario for two-sum', async () => {
     const data = await getScenarioByPageUrl('https://leetcode.com/problems/two-sum/');
 
