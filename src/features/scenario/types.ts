@@ -1,5 +1,7 @@
 export type ProblemDifficulty = 'easy' | 'medium' | 'hard';
 
+export type ScenarioInsights = Record<string, unknown>;
+
 export type ScenarioItem = {
   id: string;
   title: string;
@@ -14,6 +16,7 @@ export type ProblemScenarioData = {
     difficulty: ProblemDifficulty;
   };
   scenarios: ScenarioItem[];
+  insights?: ScenarioInsights;
 };
 
 export type ScenarioQuery = {
@@ -23,3 +26,25 @@ export type ScenarioQuery = {
 export type ScenarioProvider = {
   getByUrl: (query: ScenarioQuery) => Promise<ProblemScenarioData | null>;
 };
+
+export type BackendErrorPayload = {
+  code: string;
+  message: string;
+  details: Record<string, unknown> | unknown[];
+};
+
+export type ProblemInsightsSuccessEnvelope = {
+  success: true;
+  data: ScenarioInsights;
+  error: null;
+};
+
+export type ProblemInsightsErrorEnvelope = {
+  success: false;
+  data: null;
+  error: BackendErrorPayload;
+};
+
+export type ProblemInsightsEnvelope =
+  | ProblemInsightsSuccessEnvelope
+  | ProblemInsightsErrorEnvelope;

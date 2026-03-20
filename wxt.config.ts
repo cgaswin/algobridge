@@ -10,7 +10,7 @@ export default defineConfig({
     name: 'AlgoBridge',
     description:
       'Connects DSA problems on LeetCode to practical real-world industry scenarios.',
-    permissions: ['tabs', 'storage'],
+    permissions: ['tabs', 'storage', 'http://localhost/*', 'https://api.algobridge.com/*'],
     browser_action: {
       default_title: 'Open AlgoBridge',
     },

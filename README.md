@@ -26,6 +26,23 @@ WXT launches a browser instance with the extension loaded.
 - `npm run build` - production build
 - `npm run zip` - build zipped package
 
+## Backend API Config
+
+Remote provider defaults to backend mode and sends `POST /api/v1/problems` with `{ "url": "..." }`.
+
+- Dev default base URL: `http://localhost:8000`
+- Prod default base URL: `https://api.algobridge.com`
+
+Override with env vars (WXT env naming):
+
+- `WXT_PROBLEM_INSIGHTS_API_BASE_URL_DEV`
+- `WXT_PROBLEM_INSIGHTS_API_BASE_URL_PROD`
+- `WXT_PROBLEM_INSIGHTS_API_BASE_URL` (shared fallback)
+
+Provider mode env var:
+
+- `WXT_SCENARIO_PROVIDER_MODE=remote|dummy`
+
 ## Current Architecture
 
 - `entrypoints/background.ts` handles extension action click and sends open-overlay messages.

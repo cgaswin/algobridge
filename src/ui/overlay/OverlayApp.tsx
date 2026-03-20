@@ -23,6 +23,7 @@ import {
   getScenarioProviderMode,
 } from '@/src/features/scenario/scenario-service';
 import type { ProblemScenarioData } from '@/src/features/scenario/types';
+import { logDebug, logError } from '@/src/shared/logger';
 import { LOCATION_CHANGED_EVENT } from '@/src/shared/location-events';
 import { OVERLAY_OPEN_REQUESTED_EVENT } from '@/src/shared/messaging';
 
@@ -41,16 +42,32 @@ const DIFFICULTY_LABEL: Record<ProblemScenarioData['problem']['difficulty'], str
 
 async function loadScenario(): Promise<OverlayState> {
   try {
+    logDebug('loading scenario for current URL', {
+      url: window.location.href,
+      providerMode: getScenarioProviderMode(),
+    });
+
     const data = await getScenarioByPageUrl(window.location.href);
     if (!data) {
+      logDebug('no scenario data returned for current URL');
       return { status: 'empty' };
     }
 
+    logDebug('scenario data loaded successfully', {
+      slug: data.problem.slug,
+      scenarioCount: data.scenarios.length,
+    });
     return { status: 'success', data };
-  } catch {
+  } catch (error) {
+    const fallbackMessage = 'Could not load real-world scenario. Please try again.';
+    logError('scenario load failed', {
+      error,
+      url: window.location.href,
+    });
+
     return {
       status: 'error',
-      message: 'Could not load real-world scenario. Please try again.',
+      message: error instanceof Error && error.message ? error.message : fallbackMessage,
     };
   }
 }
@@ -61,6 +78,7 @@ export function OverlayApp() {
   const [selectedVote, setSelectedVote] = React.useState<HelpfulnessVote | null>(null);
 
   const refreshScenarioFromCurrentUrl = React.useCallback(async () => {
+    logDebug('refreshing scenario from current URL');
     setOverlayState({ status: 'loading' });
     setSelectedVote(null);
 
@@ -75,6 +93,7 @@ export function OverlayApp() {
 
   React.useEffect(() => {
     const onOpenRequested = () => {
+      logDebug('overlay open requested event received');
       setOpen(true);
       void refreshScenarioFromCurrentUrl();
     };
@@ -92,6 +111,7 @@ export function OverlayApp() {
         return;
       }
 
+      logDebug('location changed while overlay open, refreshing scenario');
       void refreshScenarioFromCurrentUrl();
     };
 
@@ -108,6 +128,10 @@ export function OverlayApp() {
         return;
       }
 
+      logDebug('helpfulness vote submitted', {
+        slug: overlayState.data.problem.slug,
+        vote,
+      });
       setSelectedVote(vote);
       await saveHelpfulnessVote(overlayState.data.problem.slug, vote);
     },

@@ -8,12 +8,18 @@ import {
   OVERLAY_OPEN_REQUESTED_EVENT,
 } from '../src/shared/messaging';
 import { dispatchLocationChanged } from '../src/shared/location-events';
+import { logDebug } from '../src/shared/logger';
 import { OverlayApp } from '../src/ui/overlay/OverlayApp';
 
 export default defineContentScript({
   matches: ['*://leetcode.com/*', '*://www.leetcode.com/*'],
   cssInjectionMode: 'ui',
   async main(ctx) {
+    logDebug('content script mounted', {
+      url: window.location.href,
+      pathname: window.location.pathname,
+    });
+
     const ui = await createShadowRootUi(ctx, {
       name: 'algobridge-overlay',
       position: 'inline',
@@ -35,6 +41,7 @@ export default defineContentScript({
     });
 
     ui.mount();
+    logDebug('overlay UI mounted in shadow root');
 
     let lastPathname = window.location.pathname;
 
@@ -45,6 +52,9 @@ export default defineContentScript({
       }
 
       lastPathname = nextPathname;
+      logDebug('detected SPA route change', {
+        pathname: nextPathname,
+      });
       dispatchLocationChanged(nextPathname);
     };
 
@@ -68,6 +78,7 @@ export default defineContentScript({
         return;
       }
 
+      logDebug('received open-overlay runtime message');
       window.dispatchEvent(new CustomEvent(OVERLAY_OPEN_REQUESTED_EVENT));
     };
 
