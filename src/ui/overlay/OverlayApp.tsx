@@ -13,6 +13,11 @@ import {
 } from '@/components/ui/dialog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import {
+  getHelpfulnessVote,
+  saveHelpfulnessVote,
+} from '@/src/features/feedback/storage';
+import type { HelpfulnessVote } from '@/src/features/feedback/types';
 import { getScenarioByPageUrl } from '@/src/features/scenario/scenario-service';
 import type { ProblemScenarioData } from '@/src/features/scenario/types';
 import { OVERLAY_OPEN_REQUESTED_EVENT } from '@/src/shared/messaging';
@@ -49,14 +54,21 @@ async function loadScenario(): Promise<OverlayState> {
 export function OverlayApp() {
   const [open, setOpen] = React.useState(false);
   const [overlayState, setOverlayState] = React.useState<OverlayState>({ status: 'idle' });
+  const [selectedVote, setSelectedVote] = React.useState<HelpfulnessVote | null>(null);
 
   React.useEffect(() => {
     const onOpenRequested = async () => {
       setOpen(true);
       setOverlayState({ status: 'loading' });
+      setSelectedVote(null);
 
       const nextState = await loadScenario();
       setOverlayState(nextState);
+
+      if (nextState.status === 'success') {
+        const existingVote = await getHelpfulnessVote(nextState.data.problem.slug);
+        setSelectedVote(existingVote);
+      }
     };
 
     window.addEventListener(OVERLAY_OPEN_REQUESTED_EVENT, onOpenRequested);
@@ -65,6 +77,18 @@ export function OverlayApp() {
       window.removeEventListener(OVERLAY_OPEN_REQUESTED_EVENT, onOpenRequested);
     };
   }, []);
+
+  const handleVote = React.useCallback(
+    async (vote: HelpfulnessVote) => {
+      if (overlayState.status !== 'success') {
+        return;
+      }
+
+      setSelectedVote(vote);
+      await saveHelpfulnessVote(overlayState.data.problem.slug, vote);
+    },
+    [overlayState],
+  );
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -151,11 +175,19 @@ export function OverlayApp() {
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <p className="text-sm text-muted-foreground">Was this scenario helpful?</p>
                   <div className="flex items-center gap-2">
-                    <Button variant="outline" size="sm">
+                    <Button
+                      variant={selectedVote === 'yes' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => handleVote('yes')}
+                    >
                       <ThumbsUp aria-hidden="true" />
                       Yes
                     </Button>
-                    <Button variant="outline" size="sm">
+                    <Button
+                      variant={selectedVote === 'no' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => handleVote('no')}
+                    >
                       <ThumbsDown aria-hidden="true" />
                       No
                     </Button>
