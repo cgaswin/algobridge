@@ -13,14 +13,50 @@ import {
 } from '@/components/ui/dialog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import { getScenarioByPageUrl } from '@/src/features/scenario/scenario-service';
+import type { ProblemScenarioData } from '@/src/features/scenario/types';
 import { OVERLAY_OPEN_REQUESTED_EVENT } from '@/src/shared/messaging';
+
+type OverlayState =
+  | { status: 'idle' }
+  | { status: 'loading' }
+  | { status: 'success'; data: ProblemScenarioData }
+  | { status: 'empty' }
+  | { status: 'error'; message: string };
+
+const DIFFICULTY_LABEL: Record<ProblemScenarioData['problem']['difficulty'], string> = {
+  easy: 'Easy',
+  medium: 'Medium',
+  hard: 'Hard',
+};
+
+async function loadScenario(): Promise<OverlayState> {
+  try {
+    const data = await getScenarioByPageUrl(window.location.href);
+    if (!data) {
+      return { status: 'empty' };
+    }
+
+    return { status: 'success', data };
+  } catch {
+    return {
+      status: 'error',
+      message: 'Could not load real-world scenario. Please try again.',
+    };
+  }
+}
 
 export function OverlayApp() {
   const [open, setOpen] = React.useState(false);
+  const [overlayState, setOverlayState] = React.useState<OverlayState>({ status: 'idle' });
 
   React.useEffect(() => {
-    const onOpenRequested = () => {
+    const onOpenRequested = async () => {
       setOpen(true);
+      setOverlayState({ status: 'loading' });
+
+      const nextState = await loadScenario();
+      setOverlayState(nextState);
     };
 
     window.addEventListener(OVERLAY_OPEN_REQUESTED_EVENT, onOpenRequested);
@@ -49,50 +85,85 @@ export function OverlayApp() {
           </div>
           <div className="flex flex-col gap-3">
             <Badge variant="secondary" className="w-fit text-[11px] uppercase tracking-wide">
-              Easy
+              {overlayState.status === 'success'
+                ? DIFFICULTY_LABEL[overlayState.data.problem.difficulty]
+                : 'Loading'}
             </Badge>
             <div className="flex flex-col gap-1">
-              <DialogTitle className="text-4xl font-bold tracking-tight">Two Sum</DialogTitle>
+              <DialogTitle className="text-4xl font-bold tracking-tight">
+                {overlayState.status === 'success'
+                  ? overlayState.data.problem.title
+                  : 'Loading problem'}
+              </DialogTitle>
               <DialogDescription className="max-w-xl text-base leading-relaxed">
-                Given an array of integers and a target value, find two numbers whose sum
-                equals the target.
+                {overlayState.status === 'success'
+                  ? 'This problem maps directly to practical engineering constraints in production systems.'
+                  : 'Preparing real-world context for this problem.'}
               </DialogDescription>
             </div>
           </div>
         </DialogHeader>
 
         <div className="flex flex-col gap-4 p-6">
-          <Card className="border-primary/30 bg-background/70">
-            <CardHeader className="gap-3 pb-2">
-              <Badge className="w-fit bg-primary/10 text-primary">Practical Application 1/1</Badge>
-              <CardTitle className="text-2xl">E-commerce Inventory Matching</CardTitle>
-            </CardHeader>
-            <CardContent className="flex flex-col gap-4">
-              <p className="text-base leading-relaxed text-muted-foreground">
-                Imagine a gift-card engine that must instantly find two cart items whose total
-                exactly matches a customer credit amount. This is the same pairing logic as Two
-                Sum, but in production.
-              </p>
-              <div className="flex items-center gap-2 rounded-md border bg-secondary/50 px-3 py-2 text-sm font-medium text-primary">
-                <TrendingUp aria-hidden="true" />
-                Reduces search from O(n^2) to O(n)
-              </div>
-              <Separator />
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <p className="text-sm text-muted-foreground">Was this scenario helpful?</p>
-                <div className="flex items-center gap-2">
-                  <Button variant="outline" size="sm">
-                    <ThumbsUp aria-hidden="true" />
-                    Yes
-                  </Button>
-                  <Button variant="outline" size="sm">
-                    <ThumbsDown aria-hidden="true" />
-                    No
-                  </Button>
+          {overlayState.status === 'loading' && (
+            <Card className="border-primary/30 bg-background/70">
+              <CardContent className="pt-6">
+                <p className="text-sm text-muted-foreground">Loading scenario...</p>
+              </CardContent>
+            </Card>
+          )}
+
+          {overlayState.status === 'empty' && (
+            <Card className="border-primary/30 bg-background/70">
+              <CardContent className="pt-6">
+                <p className="text-sm text-muted-foreground">
+                  No scenario is available yet for this page.
+                </p>
+              </CardContent>
+            </Card>
+          )}
+
+          {overlayState.status === 'error' && (
+            <Card className="border-destructive/30 bg-background/70">
+              <CardContent className="pt-6">
+                <p className="text-sm text-destructive">{overlayState.message}</p>
+              </CardContent>
+            </Card>
+          )}
+
+          {overlayState.status === 'success' && (
+            <Card className="border-primary/30 bg-background/70">
+              <CardHeader className="gap-3 pb-2">
+                <Badge className="w-fit bg-primary/10 text-primary">Practical Application 1/1</Badge>
+                <CardTitle className="text-2xl">
+                  {overlayState.data.scenarios[0]?.title ?? 'Industry scenario'}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="flex flex-col gap-4">
+                <p className="text-base leading-relaxed text-muted-foreground">
+                  {overlayState.data.scenarios[0]?.narrative}
+                </p>
+                <div className="flex items-center gap-2 rounded-md border bg-secondary/50 px-3 py-2 text-sm font-medium text-primary">
+                  <TrendingUp aria-hidden="true" />
+                  {overlayState.data.scenarios[0]?.impact}
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+                <Separator />
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <p className="text-sm text-muted-foreground">Was this scenario helpful?</p>
+                  <div className="flex items-center gap-2">
+                    <Button variant="outline" size="sm">
+                      <ThumbsUp aria-hidden="true" />
+                      Yes
+                    </Button>
+                    <Button variant="outline" size="sm">
+                      <ThumbsDown aria-hidden="true" />
+                      No
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </DialogContent>
     </Dialog>
