@@ -52,3 +52,15 @@ WXT launches a browser instance with the extension loaded.
 - Replace dummy provider with backend provider using URL-only request contract.
 - Persist feedback actions in extension storage.
 - Add CI (test + compile + build) and versioned release flow.
+
+## Release Baseline
+
+This repo now has a baseline release process:
+
+- Semantic versioning through `package.json` version.
+- Human-readable release notes in `CHANGELOG.md`.
+- Required checks before tagging a release:
+  - `npm run test`
+  - `npm run compile`
+  - `npm run build`
+  - `npm run build:firefox`
