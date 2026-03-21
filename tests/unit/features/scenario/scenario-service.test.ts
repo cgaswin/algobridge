@@ -60,6 +60,16 @@ describe('getScenarioByPageUrl', () => {
     );
   });
 
+  it('returns error when background relay response shape is invalid', async () => {
+    mockRuntimeSendMessage.mockResolvedValue({
+      invalid: true,
+    });
+
+    await expect(
+      getScenarioByPageUrl('https://leetcode.com/problems/two-sum/'),
+    ).rejects.toThrow('Background relay response shape is invalid.');
+  });
+
   it('maps successful backend response envelope into scenario data', async () => {
     mockRuntimeSendMessage.mockResolvedValue({
       ok: true,

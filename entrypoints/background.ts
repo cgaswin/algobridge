@@ -29,6 +29,7 @@ export default defineBackground(() => {
     logDebug('background received backend request relay message', {
       endpoint,
       body,
+      bodyTransport: 'json-content-type',
     });
 
     return fetch(endpoint, {
