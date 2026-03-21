@@ -76,7 +76,7 @@ function DialogContent({ className, children, ...props }: React.ComponentProps<'
           role="dialog"
           aria-modal="true"
           className={cn(
-            'relative w-full max-w-2xl rounded-2xl border bg-card p-0 text-card-foreground shadow-2xl',
+            'relative w-full max-w-[560px] scale-[0.985] rounded-xl border bg-card p-0 text-card-foreground opacity-0 shadow-[0_10px_30px_rgba(15,23,42,0.08)] animate-in fade-in zoom-in-95 duration-200',
             className,
           )}
           {...props}
