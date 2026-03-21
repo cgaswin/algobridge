@@ -31,7 +31,7 @@ WXT launches a browser instance with the extension loaded.
 Remote provider defaults to backend mode and sends `POST /api/v1/problems` with `{ "url": "..." }`.
 
 - Dev default base URL: `http://localhost:8000`
-- Prod default base URL: `https://api.algobridge.com`
+- Current default base URL: `http://localhost:8000`
 
 Override with env vars (WXT env naming):
 
