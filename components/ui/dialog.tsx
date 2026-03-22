@@ -70,13 +70,20 @@ function DialogContent({ className, children, ...props }: React.ComponentProps<'
 
   return (
     <DialogPortal>
-      <DialogOverlay onClick={() => setOpen(false)} />
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <DialogOverlay />
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center p-4"
+        onMouseDown={(event) => {
+          if (event.target === event.currentTarget) {
+            setOpen(false);
+          }
+        }}
+      >
         <div
           role="dialog"
           aria-modal="true"
           className={cn(
-            'relative w-full max-w-[560px] scale-[0.985] rounded-xl border bg-card p-0 text-card-foreground opacity-0 shadow-[0_10px_30px_rgba(15,23,42,0.08)] animate-in fade-in zoom-in-95 duration-200',
+            'relative w-full max-w-[560px] rounded-xl border bg-card p-0 text-card-foreground shadow-[0_10px_30px_rgba(15,23,42,0.08)] animate-in fade-in-0 zoom-in-95 duration-200',
             className,
           )}
           {...props}

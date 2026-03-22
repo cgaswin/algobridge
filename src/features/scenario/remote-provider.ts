@@ -94,7 +94,7 @@ function mapInsightsToScenarioData(
         impact:
           systemExamples.length > 0
             ? `Examples: ${systemExamples.slice(0, 2).join(' | ')}`
-            : 'Generated from backend insights',
+            : '',
       },
     ],
     insights,
