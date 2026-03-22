@@ -2,7 +2,7 @@
   "name": "algobridge",
   "description": "Browser extension that connects DSA problems to real-world applications.",
   "private": true,
-  "version": "0.1.0",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "wxt",
