@@ -24,7 +24,7 @@ export default defineConfig({
   vite: () => ({
     plugins: [tailwindcss()],
   }),
-  manifest: ({ mode }) => ({
+  manifest: ({ mode, manifestVersion }) => ({
     name: "AlgoBridge",
     description:
       "Connects DSA problems on LeetCode to practical real-world industry scenarios.",
@@ -37,6 +37,12 @@ export default defineConfig({
         "32": "icon/32.png",
         "48": "icon/48.png",
         "128": "icon/128.png",
+      },
+    },
+    commands: {
+      [manifestVersion === 2 ? "_execute_browser_action" : "_execute_action"]: {
+        suggested_key: { default: "Alt+Shift+A" },
+        description: "Toggle the AlgoBridge panel",
       },
     },
     icons: {
