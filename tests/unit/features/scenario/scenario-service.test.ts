@@ -89,15 +89,68 @@ describe('getScenarioByPageUrl', () => {
 
     expect(data).not.toBeNull();
     expect(data?.problem.slug).toBe('two-sum');
-    expect(data?.scenarios[0]?.title).toBe('Inventory Pairing');
-    expect(data?.scenarios[0]?.narrative).toBe(
-      'Find item pairs that hit an exact budget threshold quickly.',
-    );
+    expect(data?.problem.difficulty).toBeNull();
+    expect(data?.insight).toEqual({
+      useCase: 'Inventory Pairing',
+      systemExamples: ['cart matcher', 'credit utilization'],
+      explanation: 'Find item pairs that hit an exact budget threshold quickly.',
+    });
     expect(data?.insights).toEqual(
       expect.objectContaining({
         use_case: 'Inventory Pairing',
       }),
     );
+  });
+
+  it('uses problem metadata from the backend response', async () => {
+    mockRuntimeSendMessage.mockResolvedValue({
+      ok: true,
+      status: 200,
+      body: {
+        success: true,
+        data: {
+          problem: {
+            slug: 'two-sum',
+            title: 'Two Sum',
+            difficulty: 'Easy',
+            tags: ['Array', 'Hash Table'],
+          },
+          use_case: 'Inventory Pairing',
+          explanation: 'Hash lookups make it linear.',
+          system_examples: ['Checkout — pairing items to a credit balance'],
+        },
+        error: null,
+      },
+    });
+
+    const data = await getScenarioByPageUrl('https://leetcode.com/problems/two-sum/');
+
+    expect(data?.problem).toEqual({
+      slug: 'two-sum',
+      title: 'Two Sum',
+      difficulty: 'easy',
+      tags: ['Array', 'Hash Table'],
+    });
+  });
+
+  it('accepts system_examples cached as a single string', async () => {
+    mockRuntimeSendMessage.mockResolvedValue({
+      ok: true,
+      status: 200,
+      body: {
+        success: true,
+        data: {
+          use_case: 'Inventory Pairing',
+          explanation: 'Hash lookups make it linear.',
+          system_examples: 'Redis',
+        },
+        error: null,
+      },
+    });
+
+    const data = await getScenarioByPageUrl('https://leetcode.com/problems/two-sum/');
+
+    expect(data?.insight.systemExamples).toEqual(['Redis']);
   });
 
   it('returns null when backend reports unsupported platform', async () => {

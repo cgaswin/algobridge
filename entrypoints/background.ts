@@ -86,7 +86,6 @@ export default defineBackground(() => {
   toolbarAction.onClicked.addListener(async (tab) => {
     logDebug('toolbar icon clicked', {
       tabId: tab.id,
-      tabUrl: tab.url,
     });
 
     if (tab.id == null) {

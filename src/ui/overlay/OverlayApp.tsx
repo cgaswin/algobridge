@@ -22,7 +22,7 @@ type OverlayState =
   | { status: 'empty' }
   | { status: 'error'; message: string };
 
-const DIFFICULTY_LABEL: Record<ProblemScenarioData['problem']['difficulty'], string> = {
+const DIFFICULTY_LABEL: Record<NonNullable<ProblemScenarioData['problem']['difficulty']>, string> = {
   easy: 'Easy',
   medium: 'Medium',
   hard: 'Hard',
@@ -42,7 +42,7 @@ async function loadScenario(): Promise<OverlayState> {
 
     logDebug('scenario data loaded successfully', {
       slug: data.problem.slug,
-      scenarioCount: data.scenarios.length,
+      systemExampleCount: data.insight.systemExamples.length,
     });
     return { status: 'success', data };
   } catch (error) {
@@ -64,7 +64,7 @@ export function OverlayApp() {
   const [overlayState, setOverlayState] = React.useState<OverlayState>({ status: 'idle' });
 
   const scenarioData = overlayState.status === 'success' ? overlayState.data : null;
-  const primaryScenario = scenarioData?.scenarios[0];
+  const insight = scenarioData?.insight;
 
   const refreshScenarioFromCurrentUrl = React.useCallback(async () => {
     logDebug('refreshing scenario from current URL');
@@ -117,11 +117,13 @@ export function OverlayApp() {
                 </p>
 
                 <div className="flex flex-wrap items-center gap-2 text-xs text-[#94A3B8]">
-                  <span className="rounded-md bg-[#E8F0FF] px-2 py-1 font-medium text-[#2E4A7D]">
-                    {scenarioData
-                      ? DIFFICULTY_LABEL[scenarioData.problem.difficulty]
-                      : 'Preparing'}
-                  </span>
+                  {(!scenarioData || scenarioData.problem.difficulty) && (
+                    <span className="rounded-md bg-[#E8F0FF] px-2 py-1 font-medium text-[#2E4A7D]">
+                      {scenarioData?.problem.difficulty
+                        ? DIFFICULTY_LABEL[scenarioData.problem.difficulty]
+                        : 'Preparing'}
+                    </span>
+                  )}
                   {scenarioData && <span>{scenarioData.problem.slug}</span>}
                 </div>
 
@@ -171,19 +173,29 @@ export function OverlayApp() {
                 </p>
               )}
 
-              {overlayState.status === 'success' && (
-                <div className="mt-3 flex flex-col gap-3">
-                  <h3 className="text-base font-semibold leading-tight text-[#0F172A]">
-                    {primaryScenario?.title ?? 'Industry scenario'}
-                  </h3>
+              {overlayState.status === 'success' && insight && (
+                <div className="mt-3 flex flex-col gap-4">
                   <p className="max-w-[65ch] text-sm leading-6 text-[#475569]">
-                    {primaryScenario?.narrative}
+                    {insight.useCase}
                   </p>
 
-                  {primaryScenario?.impact && (
+                  {insight.systemExamples.length > 0 && (
+                    <div className="flex flex-col gap-2">
+                      <h3 className="text-xs font-medium uppercase tracking-[0.08em] text-[#6E87B3]">
+                        Where it shows up
+                      </h3>
+                      <ul className="flex list-disc flex-col gap-1.5 pl-5 text-sm leading-6 text-[#475569]">
+                        {insight.systemExamples.map((example) => (
+                          <li key={example}>{example}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {insight.explanation && (
                     <p className="max-w-[65ch] text-sm leading-6 text-[#475569]">
                       <span className="font-medium text-[#2E4A7D]">Why it matters:</span>{' '}
-                      {primaryScenario.impact}
+                      {insight.explanation}
                     </p>
                   )}
                 </div>
