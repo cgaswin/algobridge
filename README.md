@@ -1,83 +1,107 @@
-# algobridge
+<p align="center">
+  <img src="public/icon/128.png" width="96" height="96" alt="AlgoBridge bridge icon" />
+</p>
 
-AI-powered browser extension that connects DSA problems to practical real-world applications.
+<h1 align="center">AlgoBridge</h1>
+<p align="center"><strong>See where the algorithms you practice show up in real systems.</strong></p>
+<p align="center">A Chrome extension that adds real-world context to LeetCode problems—without leaving the page.</p>
 
-## Stack
+![AlgoBridge explaining Two Sum beside the LeetCode problem in light mode](docs/store/two-sum-light.png)
 
-- WXT (MV3)
-- React + TypeScript
-- Tailwind CSS v4
-- UI styled with LeetCode's own colour, type and spacing tokens (`assets/tailwind.css`)
-- Vitest for unit tests
+## From practice problem to practical use
+
+Why learn LRU caches? Where does graph traversal actually help? AlgoBridge puts those connections beside the problem you're solving.
+
+- **Real-world applications:** explore practical use cases and examples of systems using related ideas.
+- **Approach, when you're ready:** algorithm details stay collapsed until you choose to open them. They can spoil the solution.
+- **Familiar interface:** a panel that follows LeetCode's light and dark themes.
+- **Quick access:** click the **Real-world** chip, the extension's toolbar icon, or press **Alt+Shift+A**.
+- **Local feedback:** mark explanations helpful or unhelpful; votes are saved in your browser.
+
+Explanations are AI-generated and may be inaccurate. Treat named systems as learning examples, not verified implementation documentation. AlgoBridge is an independent project, not affiliated with LeetCode.
+
+### At home in dark mode
+
+![AlgoBridge showing LRU Cache applications in dark mode](docs/store/lru-cache-dark.png)
+
+<details>
+<summary>See the optional approach explanation</summary>
+
+![Number of Islands with the Approach section expanded](docs/store/islands-approach.png)
+
+</details>
+
+## Try it locally
+
+Chrome Web Store publication is still pending. To install from source, use Node.js 22 or newer and npm:
+
+```bash
+git clone https://github.com/cgaswin/algobridge.git
+cd algobridge
+npm ci
+npm run build
+```
+
+1. Open `chrome://extensions` and enable **Developer mode**.
+2. Click **Load unpacked** and select `.output/chrome-mv3` in this repository.
+3. Open a [LeetCode problem](https://leetcode.com/problems/two-sum/description/) and click **Real-world**.
+
+The checked-in production configuration uses the hosted AlgoBridge API. A first request may take longer if the service is waking up. No personal AI API key is needed in the extension.
+
+## Data and permissions
+
+When requesting an explanation, the extension sends the current problem URL to the AlgoBridge API. The backend uses AI services to generate explanations. Helpfulness votes are stored locally in Chrome, not sent to the backend.
+
+The extension requests `storage` for local feedback and access to its API host for explanations. Its content script runs on LeetCode pages (`leetcode.com` and `www.leetcode.com`), with the chip and panel used on problem pages. See the [backend repository](https://github.com/cgaswin/algobridge-api) for server-side behavior. A published privacy policy and matching store disclosures are required before store submission.
 
 ## Development
 
 ```bash
-npm install
+npm ci
 npm run dev
 ```
 
-WXT launches a browser instance with the extension loaded.
+WXT starts the development environment. Development requests default to `http://localhost:8000`; run the [backend](https://github.com/cgaswin/algobridge-api) locally, or override the API URL.
 
-## Scripts
+| Variable | Purpose |
+| --- | --- |
+| `WXT_PROBLEM_INSIGHTS_API_BASE_URL_DEV` | Development API URL |
+| `WXT_PROBLEM_INSIGHTS_API_BASE_URL_PROD` | Production API URL; set in `.env.production` to the hosted API |
+| `WXT_PROBLEM_INSIGHTS_API_BASE_URL` | Shared fallback when a mode-specific URL is absent |
+| `WXT_SCENARIO_PROVIDER_MODE` | `remote` (default) or `dummy` for fixture data |
 
-- `npm run test` - run unit tests
-- `npm run compile` - TypeScript check
-- `npm run build` - production build
-- `npm run zip` - build zipped package
+Without an environment override, the API URL falls back to `http://localhost:8000`. These are build-time settings: rebuild after changing them. Do not put secrets in `WXT_` variables; they are bundled into the extension.
 
-## Backend API Config
+### Commands
 
-Remote provider defaults to backend mode and sends `POST /api/v1/problems` with `{ "url": "..." }`.
+| Command | Purpose |
+| --- | --- |
+| `npm run test` | Unit tests |
+| `npm run compile` | TypeScript check |
+| `npm run build` | Chrome production build |
+| `npm run zip` | Build a Chrome upload ZIP in `.output/` |
+| `npm run dev:firefox` | Firefox development |
+| `npm run build:firefox` | Firefox build; not a claim of store readiness |
 
-- Dev default base URL: `http://localhost:8000`
-- Current default base URL: `http://localhost:8000`
+### Code map
 
-Override with env vars (WXT env naming):
+Built with **WXT / Manifest V3**, **React**, **TypeScript**, **Tailwind CSS v4**, and **Vitest**.
 
-- `WXT_PROBLEM_INSIGHTS_API_BASE_URL_DEV`
-- `WXT_PROBLEM_INSIGHTS_API_BASE_URL_PROD`
-- `WXT_PROBLEM_INSIGHTS_API_BASE_URL` (shared fallback)
+- `entrypoints/background.ts` — toolbar and shortcut actions, API request relay, welcome page.
+- `entrypoints/content.tsx` — shadow-root mounts for the inline chip and panel.
+- `entrypoints/welcome/` — onboarding.
+- `src/ui/overlay/` — panel, loading/error states, theme and placement.
+- `src/features/scenario/` — remote API and fixture providers.
+- `src/features/feedback/` — local helpfulness votes.
+- `public/icon/` — editable SVG artwork and Chrome PNG icons.
+- `docs/store/` — store screenshots, promo tile, and submission checklist.
 
-Provider mode env var:
+## Before a release
 
-- `WXT_SCENARIO_PROVIDER_MODE=remote|dummy`
+Run `npm run test`, `npm run compile`, and `npm run zip`, then load the resulting build in Chrome. Check onboarding, all three ways to toggle the panel, Escape dismissal, light/dark themes, problem-to-problem navigation, feedback persistence, and the retry state when the API is unavailable. Clicking the toolbar outside LeetCode should open onboarding.
 
-## Current Architecture
+See the [Chrome Web Store checklist and assets](docs/store/README.md) for submission steps. Report bugs or inaccurate examples through [GitHub Issues](https://github.com/cgaswin/algobridge/issues).
 
-- `entrypoints/background.ts` handles the toolbar click / `Alt+Shift+A` shortcut, relays API requests, and opens the welcome page on install or when clicked outside LeetCode.
-- `entrypoints/content.tsx` mounts two shadow-root UIs: the "Real-world" chip in LeetCode's chip row (auto-mounted, since LeetCode re-renders it) and the panel. It also listens for background messages.
-- `entrypoints/welcome/` is the onboarding page.
-- `src/ui/overlay/Panel.tsx` is the panel itself, built like a LeetCode pane: tab strip, title, chips, example-style system list, Approach/Topics accordions, feedback bar. The welcome page reuses it as a preview.
-- `src/ui/overlay/OverlayApp.tsx` loads data into the panel, floats it over the editor pane, and shows an edge tab only if the inline chip can't find its anchor. Both UIs follow LeetCode's light/dark theme.
-- `src/features/scenario` contains URL-based scenario providers (remote API, or dummy data).
-- `src/features/feedback` stores helpfulness votes in `storage.local`.
-- `src/features/leetcode/problem-url.ts` parses LeetCode problem slug from the active page URL.
+## License
 
-## Manual QA Checklist
-
-1. Install the extension: the welcome page opens.
-2. Open `https://leetcode.com/problems/two-sum/`: a "Real-world" chip appears after Easy / Topics / Companies / Hint.
-3. Open the panel via the chip, the toolbar icon, and `Alt+Shift+A` (each also closes it).
-4. The panel doesn't block the editor; Escape closes it when focus is inside it.
-5. The Approach and Topics chips open their accordions; thumbs up/down persists after reload.
-6. Toggle LeetCode's dark mode: the panel follows.
-7. Stop the API: the panel shows a friendly error with "Try again".
-8. Click the toolbar icon on a non-LeetCode tab: the welcome page opens with a notice.
-
-## Next Milestones
-
-- Send helpfulness votes to the backend.
-- Add CI (test + compile + build) and versioned release flow.
-
-## Release Baseline
-
-This repo now has a baseline release process:
-
-- Semantic versioning through `package.json` version.
-- Human-readable release notes in `CHANGELOG.md`.
-- Required checks before tagging a release:
-  - `npm run test`
-  - `npm run compile`
-  - `npm run build`
-  - `npm run build:firefox`
+[GNU Affero General Public License v3.0](LICENSE)

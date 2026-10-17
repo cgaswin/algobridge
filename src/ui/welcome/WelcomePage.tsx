@@ -1,9 +1,10 @@
-import { BookOpen } from 'lucide-react';
+import { ArrowRight, ArrowUpRight, Lightbulb, Moon, Sun } from 'lucide-react';
 import * as React from 'react';
 
 import type { HelpfulnessVote } from '@/src/features/feedback/types';
 import { SAMPLE_SCENARIO } from '@/src/features/scenario/dummy-provider';
 import { Panel } from '@/src/ui/overlay/Panel';
+import './welcome.css';
 
 const SAMPLE_PROBLEM_URL = 'https://leetcode.com/problems/two-sum/';
 const DEFAULT_SHORTCUT = 'Alt+Shift+A';
@@ -27,116 +28,134 @@ function useToggleShortcut(): string | null {
   return shortcut;
 }
 
-// LeetCode's inline code style, used for keys and URLs.
-function Code({ children }: { children: React.ReactNode }) {
-  return (
-    <code className="rounded-[5px] border border-divider bg-fill-2/50 px-1 py-px font-mono text-xs text-label-2">
-      {children}
-    </code>
-  );
-}
-
 export function WelcomePage() {
   const shortcut = useToggleShortcut();
   const [vote, setVote] = React.useState<HelpfulnessVote | null>(null);
+  const [previewOpen, setPreviewOpen] = React.useState(true);
+  const [dark, setDark] = React.useState(() => document.documentElement.classList.contains('dark'));
+  const previewChip = React.useRef<HTMLButtonElement>(null);
   const unsupportedPage =
     new URLSearchParams(window.location.search).get('reason') === 'unsupported-page';
 
+  function toggleTheme() {
+    document.documentElement.classList.toggle('dark', !dark);
+    setDark(!dark);
+  }
+
+  function closePreview() {
+    setPreviewOpen(false);
+    previewChip.current?.focus();
+  }
+
   return (
-    // Laid out like a LeetCode problem workspace: two panes on the grey page.
-    <main className="flex min-h-screen flex-col gap-2.5 bg-page p-2.5 font-sans text-label-1 antialiased lg:flex-row lg:items-start lg:justify-center lg:pt-[14vh]">
-      <section
-        aria-labelledby="welcome-title"
-        className="flex flex-col overflow-hidden rounded-lg bg-layer-1 lg:max-w-[720px] lg:min-w-0 lg:flex-1"
-      >
-        <div className="flex h-9 shrink-0 items-center bg-layer-2 px-2">
-          <span className="flex items-center gap-1.5 px-2 text-sm leading-5 font-medium">
-            <BookOpen className="size-4 text-[#007bff] dark:text-[#4aa3ff]" aria-hidden="true" />
-            Getting started
-          </span>
-        </div>
-
-        <div className="flex flex-1 flex-col gap-4 overflow-y-auto px-4 py-5 lg:px-8 lg:py-8">
-          <h1 id="welcome-title" className="text-2xl leading-8 font-semibold text-title">
-            Real-world use for every problem
-          </h1>
-
-          <p className="max-w-[60ch] text-sm leading-[21px]">
-            AlgoBridge adds a <strong className="font-semibold">Real-world</strong> chip to LeetCode
-            problem pages, next to Topics and Hint. It opens a pane with a use case and the named
-            systems that rely on the same idea. The approach stays folded until you ask for it.
-          </p>
-
-          {unsupportedPage && (
-            <p role="status" className="max-w-[60ch] rounded-lg bg-fill-2 px-3 py-2 text-sm leading-[21px]">
-              AlgoBridge only runs on LeetCode problem pages. If you already have one open, refresh
-              that tab and try again.
-            </p>
-          )}
-
-          <div className="flex max-w-[60ch] flex-col gap-3 pt-2">
-            {[
-              {
-                label: 'Step 1',
-                body: (
-                  <>
-                    Open any problem on <Code>leetcode.com/problems/…</Code>
-                  </>
-                ),
-              },
-              {
-                label: 'Step 2',
-                body: (
-                  <>
-                    Click <strong className="font-semibold">Real-world</strong> in the chip row under
-                    the title, or the AlgoBridge toolbar icon.
-                  </>
-                ),
-              },
-              {
-                label: 'Step 3',
-                body: shortcut ? (
-                  <>
-                    Or press <Code>{shortcut}</Code>. Change it from your browser’s extension
-                    shortcuts page.
-                  </>
-                ) : (
-                  <>Or assign a keyboard shortcut from your browser’s extension shortcuts page.</>
-                ),
-              },
-            ].map(({ label, body }) => (
-              <div key={label} className="flex flex-col gap-1">
-                <p className="text-sm leading-[21px] font-semibold">{label}:</p>
-                <p
-                  data-ui="leetcode-example"
-                  className="border-l-2 border-fill-3 pl-4 text-sm leading-[21px] text-label-2"
-                >
-                  {body}
-                </p>
-              </div>
-            ))}
-          </div>
-
-          <div className="pt-4">
-            <a
-              href={SAMPLE_PROBLEM_URL}
-              className="inline-flex h-8 items-center rounded-lg bg-brand px-4 text-sm font-medium text-[#1a1a1a] transition-[filter] hover:brightness-105 focus-visible:ring-2 focus-visible:ring-brand/60 focus-visible:ring-offset-2 focus-visible:ring-offset-layer-1 focus-visible:outline-none active:brightness-95"
-            >
-              Try it on Two Sum
+    <div className="welcome">
+      <div className="welcome-shell">
+        <header className="welcome-header">
+          <a className="welcome-wordmark" href="welcome.html" aria-label="AlgoBridge home">
+            <img src="/icon/48.png" width="36" height="36" alt="" />
+            AlgoBridge
+          </a>
+          <nav className="welcome-nav" aria-label="Page links">
+            <a href="https://github.com/cgaswin/algobridge/issues" target="_blank" rel="noreferrer">
+              Give feedback <ArrowUpRight size={15} aria-hidden="true" />
             </a>
-          </div>
-        </div>
-      </section>
+            <button className="welcome-theme" type="button" onClick={toggleTheme}
+              aria-label={dark ? 'Switch to light theme' : 'Switch to dark theme'}>
+              {dark ? <Sun size={18} aria-hidden="true" /> : <Moon size={18} aria-hidden="true" />}
+            </button>
+          </nav>
+        </header>
 
-      <section aria-label="Panel preview" data-ui="panel-preview" className="flex lg:w-[440px] lg:shrink-0">
-        <Panel
-          state={{ status: 'success', data: SAMPLE_SCENARIO }}
-          vote={vote}
-          onVote={setVote}
-          onRetry={() => {}}
-          className="w-full"
-        />
-      </section>
-    </main>
+        {unsupportedPage && (
+          <p className="welcome-notice" role="status">
+            You're all set—just open a LeetCode problem to use AlgoBridge. If one is already open,
+            refresh that tab and try again.
+          </p>
+        )}
+
+        <main id="main" className="welcome-main">
+          <section className="welcome-intro" aria-labelledby="welcome-title">
+            <h1 id="welcome-title">Go beyond<br />“Accepted.”</h1>
+            <p className="welcome-lead">
+              You know how to solve it.<br />Now see where it matters.
+            </p>
+            <p className="welcome-description">
+              Connect LeetCode problems to real-world applications, right beside the problem you're solving.
+            </p>
+            <a href={SAMPLE_PROBLEM_URL} className="welcome-primary">
+              Try it on Two Sum <ArrowRight size={19} aria-hidden="true" />
+            </a>
+            <p className="welcome-ready">No account or API key needed.</p>
+
+            <div className="welcome-instructions">
+              <h2>A little context. One click away.</h2>
+              <ol>
+                <li>Open a problem on LeetCode.</li>
+                <li>Click <span className="welcome-inline-chip"><Lightbulb size={13} aria-hidden="true" /> Real-world</span> below the problem title.</li>
+                <li>Explore the use cases. Reveal the approach when you're ready.</li>
+              </ol>
+              <p className="welcome-shortcut">
+                {shortcut ? <>Or use <kbd>{shortcut}</kbd> or the toolbar icon.</> :
+                  <>You can also use the toolbar icon or set an extension shortcut.</>}
+              </p>
+            </div>
+          </section>
+
+          <section className="welcome-demo" aria-label="Interactive example">
+            <div className="welcome-demo-caption">
+              <span>From a coding exercise…</span>
+              <span className="welcome-demo-note">Interactive preview</span>
+            </div>
+            <div className="welcome-problem" data-ui="problem-preview">
+              <div className="welcome-problem-heading"><span>1. Two Sum</span><span className="welcome-easy">Easy</span></div>
+              <p>Find two numbers in an array that add up to a target.</p>
+              <div className="welcome-problem-bottom">
+                <code>[2, 7, 11, 15] <span>→ target: 9</span></code>
+                <button type="button" ref={previewChip} className="welcome-demo-chip"
+                  aria-expanded={previewOpen} aria-controls="welcome-preview"
+                  onClick={() => setPreviewOpen(!previewOpen)}>
+                  <Lightbulb size={14} aria-hidden="true" /> Real-world
+                </button>
+              </div>
+            </div>
+            <div className="welcome-connection" aria-hidden="true"><span />…to a real-world use case.</div>
+            <div id="welcome-preview" className="welcome-preview" data-ui="panel-preview"
+              onKeyDown={(event) => {
+                if (event.key === 'Escape' && previewOpen) {
+                  event.preventDefault();
+                  closePreview();
+                }
+              }}>
+              {previewOpen ? (
+                <Panel state={{ status: 'success', data: SAMPLE_SCENARIO }} vote={vote}
+                  onVote={setVote} onRetry={() => {}} onClose={closePreview} className="welcome-panel" />
+              ) : (
+                <div className="welcome-preview-empty">
+                  <Lightbulb size={28} aria-hidden="true" />
+                  <h2>Make the connection.</h2>
+                  <p>Click the Real-world chip above to explore the example.</p>
+                  <button type="button" onClick={() => {
+                    setPreviewOpen(true);
+                    previewChip.current?.focus();
+                  }}>Show example <ArrowRight size={16} aria-hidden="true" /></button>
+                </div>
+              )}
+            </div>
+            <p className="welcome-demo-disclaimer">Example data · Preview votes aren't saved.</p>
+          </section>
+        </main>
+
+        <footer className="welcome-footer">
+          <details className="welcome-data">
+            <summary>What leaves my browser?</summary>
+            <p>When you request an explanation, the problem URL is sent to the AlgoBridge API,
+              which uses AI services to generate it. Your code isn't sent. Votes on LeetCode
+              stay in your browser. AI explanations can be inaccurate; check important details.
+              The first request may take longer while the service wakes up.</p>
+          </details>
+          <p>Made for the curious. Not affiliated with LeetCode.</p>
+        </footer>
+      </div>
+    </div>
   );
 }
