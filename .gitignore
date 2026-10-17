@@ -141,3 +141,4 @@ vite.config.ts.timestamp-*
 # WXT outputs
 .wxt/
 .output/
+.taste-skill/
