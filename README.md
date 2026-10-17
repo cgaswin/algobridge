@@ -45,29 +45,28 @@ Provider mode env var:
 
 ## Current Architecture
 
-- `entrypoints/background.ts` handles extension action click and sends open-overlay messages.
+- `entrypoints/background.ts` handles the toolbar click / `Alt+Shift+A` shortcut, relays API requests, and opens the welcome page on install or when clicked outside LeetCode.
 - `entrypoints/content.tsx` mounts in-page React UI in a shadow root and listens for background messages.
-- `src/ui/overlay/OverlayApp.tsx` renders the modal shell and state (loading/success/empty/error).
-- `src/features/scenario` contains URL-based scenario provider/service (dummy data for now).
+- `entrypoints/welcome/` is the onboarding page.
+- `src/ui/overlay/OverlayApp.tsx` renders the launcher tab and the non-modal side panel (loading/success/empty/error, spoiler-gated approach, helpfulness feedback). It follows LeetCode's light/dark theme.
+- `src/features/scenario` contains URL-based scenario providers (remote API, or dummy data).
+- `src/features/feedback` stores helpfulness votes in `storage.local`.
 - `src/features/leetcode/problem-url.ts` parses LeetCode problem slug from the active page URL.
 
-## Manual QA Checklist (MVP)
+## Manual QA Checklist
 
-1. Open `https://leetcode.com/problems/two-sum/`.
-2. Click extension icon: overlay opens in-page.
-3. Verify close interactions:
-   - close button
-   - backdrop click
-   - Escape key
-4. Verify data states:
-   - known slug (`two-sum`) shows scenario
-   - unknown slug (`/problems/some-new-problem/`) shows fallback scenario
-   - non-problem pages do not mount content script UI
+1. Install the extension: the welcome page opens.
+2. Open `https://leetcode.com/problems/two-sum/`: a lightbulb tab appears on the right edge.
+3. Open the panel via the tab, the toolbar icon, and `Alt+Shift+A` (which also closes it).
+4. The panel doesn't block the editor; Escape closes it when focus is inside it.
+5. "Reveal approach" shows the explanation and topic tags; thumbs up/down persists after reload.
+6. Toggle LeetCode's dark mode: the panel follows.
+7. Stop the API: the panel shows a friendly error with "Try again".
+8. Click the toolbar icon on a non-LeetCode tab: the welcome page opens with a notice.
 
 ## Next Milestones
 
-- Replace dummy provider with backend provider using URL-only request contract.
-- Persist feedback actions in extension storage.
+- Send helpfulness votes to the backend.
 - Add CI (test + compile + build) and versioned release flow.
 
 ## Release Baseline

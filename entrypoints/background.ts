@@ -13,8 +13,22 @@ function getInsightsApiUrl(): string {
   return new URL(PROBLEM_INSIGHTS_API_PATH, PROBLEM_INSIGHTS_API_BASE_URL).toString();
 }
 
+function openWelcomePage(reason?: 'unsupported-page'): Promise<unknown> {
+  const url = new URL(browser.runtime.getURL('/welcome.html'));
+  if (reason) {
+    url.searchParams.set('reason', reason);
+  }
+  return browser.tabs.create({ url: url.toString() });
+}
+
 export default defineBackground(() => {
   logDebug('background initialized', { extensionId: browser.runtime.id });
+
+  browser.runtime.onInstalled.addListener(({ reason }) => {
+    if (reason === 'install') {
+      void openWelcomePage();
+    }
+  });
 
   browser.runtime.onMessage.addListener((message) => {
     if (!isRequestProblemInsightsMessage(message)) {
@@ -100,11 +114,14 @@ export default defineBackground(() => {
         type: OPEN_OVERLAY_MESSAGE_TYPE,
       });
     } catch (error) {
+      // No content script in this tab: it isn't LeetCode, or was opened
+      // before the extension was installed.
       logWarn('failed to send message to content script', {
         tabId: tab.id,
         type: OPEN_OVERLAY_MESSAGE_TYPE,
         error,
       });
+      await openWelcomePage('unsupported-page');
     }
   });
 });
