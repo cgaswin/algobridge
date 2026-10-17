@@ -13,6 +13,7 @@ import {
   PROBLEM_INSIGHTS_API_PATH,
 } from './config';
 import type {
+  ProblemDifficulty,
   ProblemInsightsEnvelope,
   ProblemScenarioData,
   ScenarioProvider,
@@ -59,44 +60,51 @@ function isProblemInsightsEnvelope(value: unknown): value is ProblemInsightsEnve
   );
 }
 
+function readString(value: unknown): string {
+  return typeof value === 'string' ? value.trim() : '';
+}
+
+function readStringList(value: unknown): string[] {
+  if (Array.isArray(value)) {
+    return value
+      .filter((item): item is string => typeof item === 'string')
+      .map((item) => item.trim())
+      .filter(Boolean);
+  }
+
+  // Responses cached before the list schema stored a single string.
+  const single = readString(value);
+  return single ? [single] : [];
+}
+
+function readDifficulty(value: unknown): ProblemDifficulty | null {
+  const normalized = readString(value).toLowerCase();
+  return normalized === 'easy' || normalized === 'medium' || normalized === 'hard'
+    ? normalized
+    : null;
+}
+
 function mapInsightsToScenarioData(
-  url: string,
   slug: string,
   insights: Record<string, unknown>,
 ): ProblemScenarioData {
-  const useCaseRaw = insights.use_case;
-  const explanationRaw = insights.explanation;
-  const systemExamplesRaw = insights.system_examples;
-
-  const systemExamples = Array.isArray(systemExamplesRaw)
-    ? systemExamplesRaw.filter((item): item is string => typeof item === 'string')
-    : [];
-
-  const fallbackNarrative =
-    systemExamples.length > 0
-      ? systemExamples.join(' ')
-      : `Insights fetched from backend for ${url}.`;
+  const problemRaw =
+    typeof insights.problem === 'object' && insights.problem != null
+      ? (insights.problem as Record<string, unknown>)
+      : {};
 
   return {
     problem: {
       slug,
-      title: formatProblemTitleFromSlug(slug),
-      difficulty: 'medium',
+      title: readString(problemRaw.title) || formatProblemTitleFromSlug(slug),
+      difficulty: readDifficulty(problemRaw.difficulty),
+      tags: readStringList(problemRaw.tags),
     },
-    scenarios: [
-      {
-        id: `${slug}-remote-insight`,
-        title: typeof useCaseRaw === 'string' && useCaseRaw.trim().length > 0 ? useCaseRaw : 'Real-world Application',
-        narrative:
-          typeof explanationRaw === 'string' && explanationRaw.trim().length > 0
-            ? explanationRaw
-            : fallbackNarrative,
-        impact:
-          systemExamples.length > 0
-            ? `Examples: ${systemExamples.slice(0, 2).join(' | ')}`
-            : '',
-      },
-    ],
+    insight: {
+      useCase: readString(insights.use_case),
+      systemExamples: readStringList(insights.system_examples),
+      explanation: readString(insights.explanation),
+    },
     insights,
   };
 }
@@ -176,6 +184,6 @@ export class RemoteScenarioProvider implements ScenarioProvider {
       slug,
       insightKeys: Object.keys(parsedBody.data),
     });
-    return mapInsightsToScenarioData(query.url, slug, parsedBody.data);
+    return mapInsightsToScenarioData(slug, parsedBody.data);
   }
 }

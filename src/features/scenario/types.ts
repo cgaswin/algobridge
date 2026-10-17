@@ -2,20 +2,20 @@ export type ProblemDifficulty = 'easy' | 'medium' | 'hard';
 
 export type ScenarioInsights = Record<string, unknown>;
 
-export type ScenarioItem = {
-  id: string;
-  title: string;
-  narrative: string;
-  impact: string;
+export type ProblemInsight = {
+  useCase: string;
+  systemExamples: string[];
+  explanation: string;
 };
 
 export type ProblemScenarioData = {
   problem: {
     slug: string;
     title: string;
-    difficulty: ProblemDifficulty;
+    difficulty: ProblemDifficulty | null;
+    tags: string[];
   };
-  scenarios: ScenarioItem[];
+  insight: ProblemInsight;
   insights?: ScenarioInsights;
 };
 
