@@ -44,6 +44,9 @@ const DUMMY_SCENARIO_BY_SLUG: Record<string, ProblemScenarioData> = {
   },
 };
 
+// Shown on the welcome page as a preview of the panel.
+export const SAMPLE_SCENARIO: ProblemScenarioData = DUMMY_SCENARIO_BY_SLUG['two-sum'];
+
 function buildFallbackScenario(slug: string): ProblemScenarioData {
   return {
     problem: {

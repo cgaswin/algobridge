@@ -9,7 +9,12 @@ import {
 } from '../src/shared/messaging';
 import { dispatchLocationChanged } from '../src/shared/location-events';
 import { logDebug } from '../src/shared/logger';
+import { dispatchChipPresenceChanged, INLINE_CHIP_TAG } from '../src/shared/panel-events';
+import { InlineChip } from '../src/ui/overlay/InlineChip';
 import { OverlayApp } from '../src/ui/overlay/OverlayApp';
+
+// LeetCode's chip row under the problem title (Easy, Topics, Companies, Hint).
+const CHIP_ROW_SELECTOR = 'div:has(> [class*="text-difficulty-"])';
 
 export default defineContentScript({
   matches: ['*://leetcode.com/*', '*://www.leetcode.com/*'],
@@ -42,6 +47,27 @@ export default defineContentScript({
 
     ui.mount();
     logDebug('overlay UI mounted in shadow root');
+
+    const chip = await createShadowRootUi(ctx, {
+      name: INLINE_CHIP_TAG,
+      position: 'inline',
+      anchor: CHIP_ROW_SELECTOR,
+      append: 'last',
+      onMount: (container, _shadow, host) => {
+        host.style.display = 'inline-flex';
+        const root = ReactDOM.createRoot(container);
+        root.render(<InlineChip />);
+        dispatchChipPresenceChanged(true);
+        return root;
+      },
+      onRemove: (root) => {
+        root?.unmount();
+        dispatchChipPresenceChanged(false);
+      },
+    });
+
+    // LeetCode re-renders the description on navigation and tab switches.
+    chip.autoMount();
 
     let lastPathname = window.location.pathname;
 
