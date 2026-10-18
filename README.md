@@ -50,9 +50,11 @@ The checked-in production configuration uses the hosted AlgoBridge API. A first 
 
 ## Data and permissions
 
-When requesting an explanation, the extension sends the current problem URL to the AlgoBridge API. The backend uses AI services to generate explanations. Helpfulness votes are stored locally in Chrome, not sent to the backend.
+When you open or retry an explanation, the extension sends the full current problem URL to the AlgoBridge API. While the panel is open, detected pathname changes can also trigger requests, including navigation between Description, Editorial, or Submissions views of the same problem or to another problem. Query-only or fragment-only changes do not automatically trigger a refresh, but the full URL at request time is sent, including any submission ID in the path, query string, or fragment. The backend retains the first-seen full URL and caches generated insights without automatic expiry. When a matching cached explanation is missing or outdated, it fetches public problem content from LeetCode and sends that content—not your code or the full URL—to Google Gemini. Helpfulness votes and their timestamps are stored locally in Chrome, not sent to the backend; welcome example votes are memory-only.
 
-The extension requests `storage` for local feedback and access to its API host for explanations. Its content script runs on LeetCode pages (`leetcode.com` and `www.leetcode.com`), with the chip and panel used on problem pages. See the [backend repository](https://github.com/cgaswin/algobridge-api) for server-side behavior. A published privacy policy and matching store disclosures are required before store submission.
+Read the [privacy policy draft](PRIVACY.md) for recipients, logging, retention, and clearing local data. The intended public/store URL is https://github.com/cgaswin/algobridge/blob/main/PRIVACY.md; it becomes available with this policy only after merge to `main`. No new hosting or GitHub Pages setup is needed. Live provider settings and a private privacy-request route still require owner confirmation; this is not yet a store-ready policy.
+
+The extension requests `storage` for local feedback and access to its API host for explanations. Its content script runs on LeetCode pages (`leetcode.com` and `www.leetcode.com`), with the chip and panel used on problem pages. See the [backend repository](https://github.com/cgaswin/algobridge-api) for server-side behavior. Complete the [privacy verification checklist](docs/store/README.md#privacy-verification-before-submission), publish the reviewed policy, and match the store disclosures before submission.
 
 ## Development
 
@@ -100,7 +102,7 @@ Built with **WXT / Manifest V3**, **React**, **TypeScript**, **Tailwind CSS v4**
 
 Run `npm run test`, `npm run compile`, and `npm run zip`, then load the resulting build in Chrome. Check onboarding, all three ways to toggle the panel, Escape dismissal, light/dark themes, problem-to-problem navigation, feedback persistence, and the retry state when the API is unavailable. Clicking the toolbar outside LeetCode should open onboarding.
 
-See the [Chrome Web Store checklist and assets](docs/store/README.md) for submission steps. Report bugs or inaccurate examples through [GitHub Issues](https://github.com/cgaswin/algobridge/issues).
+See the [Chrome Web Store checklist and assets](docs/store/README.md) for submission steps. Report bugs or inaccurate examples through [GitHub Issues](https://github.com/cgaswin/algobridge/issues). Issues are public: do not post private URLs, code, account details, or logs.
 
 ## License
 

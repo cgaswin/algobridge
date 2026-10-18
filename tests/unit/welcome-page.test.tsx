@@ -23,6 +23,13 @@ describe('welcome page', () => {
     expect(html).not.toContain('role="status"');
   });
 
+  it('links the public privacy policy from the existing footer', () => {
+    const html = renderWelcome();
+    expect(html).toMatch(
+      /<footer[^>]*>[\s\S]*<a [^>]*href="https:\/\/github\.com\/cgaswin\/algobridge\/blob\/main\/PRIVACY\.md">Privacy policy<\/a>[\s\S]*<\/footer>/,
+    );
+  });
+
   it('keeps the unsupported-page guidance and respects the initial dark theme', () => {
     const html = renderWelcome('?reason=unsupported-page', true);
     expect(html).toContain('role="status"');

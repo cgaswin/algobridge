@@ -153,6 +153,7 @@ export function WelcomePage() {
               stay in your browser. AI explanations can be inaccurate; check important details.
               The first request may take longer while the service wakes up.</p>
           </details>
+          <p><a className="underline underline-offset-2" href="https://github.com/cgaswin/algobridge/blob/main/PRIVACY.md">Privacy policy</a></p>
           <p>Made for the curious. Not affiliated with LeetCode.</p>
         </footer>
       </div>
