@@ -5,25 +5,28 @@ import {
 
 import type { ProblemScenarioData, ScenarioProvider, ScenarioQuery } from './types';
 
-const DUMMY_SCENARIO_BY_SLUG: Record<string, ProblemScenarioData> = {
-  'two-sum': {
-    problem: {
-      slug: 'two-sum',
-      title: 'Two Sum',
-      difficulty: 'easy',
-      tags: ['Array', 'Hash Table'],
-    },
-    insight: {
-      useCase:
-        'When a customer applies store credit, the checkout engine finds a pair of cart items whose prices exactly match the credit amount.',
-      systemExamples: [
-        'E-commerce checkout — matching item pairs to a gift card balance',
-        'Banking fraud pipelines — pairing transactions that sum to a reporting threshold',
-      ],
-      explanation:
-        'A hash map of seen values turns the O(n^2) pair search into a single O(n) pass, which keeps matching fast on large carts and transaction streams.',
-    },
+// Shown on the welcome page as a preview of the panel.
+export const SAMPLE_SCENARIO: ProblemScenarioData = {
+  problem: {
+    slug: 'two-sum',
+    title: 'Two Sum',
+    difficulty: 'easy',
+    tags: ['Array', 'Hash Table'],
   },
+  insight: {
+    useCase:
+      'When a customer applies store credit, the checkout engine finds a pair of cart items whose prices exactly match the credit amount.',
+    systemExamples: [
+      'E-commerce checkout — matching item pairs to a gift card balance',
+      'Banking fraud pipelines — pairing transactions that sum to a reporting threshold',
+    ],
+    explanation:
+      'A hash map of seen values turns the O(n^2) pair search into a single O(n) pass, which keeps matching fast on large carts and transaction streams.',
+  },
+};
+
+const DUMMY_SCENARIO_BY_SLUG: Record<string, ProblemScenarioData> = {
+  'two-sum': SAMPLE_SCENARIO,
   'best-time-to-buy-and-sell-stock': {
     problem: {
       slug: 'best-time-to-buy-and-sell-stock',
@@ -43,9 +46,6 @@ const DUMMY_SCENARIO_BY_SLUG: Record<string, ProblemScenarioData> = {
     },
   },
 };
-
-// Shown on the welcome page as a preview of the panel.
-export const SAMPLE_SCENARIO: ProblemScenarioData = DUMMY_SCENARIO_BY_SLUG['two-sum'];
 
 function buildFallbackScenario(slug: string): ProblemScenarioData {
   return {

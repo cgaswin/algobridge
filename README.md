@@ -61,7 +61,9 @@ npm ci
 npm run dev
 ```
 
-WXT starts the development environment. Development requests default to `http://localhost:8000`; run the [backend](https://github.com/cgaswin/algobridge-api) locally, or override the API URL.
+WXT starts the development server. Load `.output/chrome-mv3-dev` as an unpacked extension in Chrome; for `npm run dev:firefox`, load `.output/firefox-mv2-dev/manifest.json` as a temporary add-on from `about:debugging`. WXT 0.21 makes the browser launcher optional; this project leaves it uninstalled to avoid its remaining dependency advisories, so browsers no longer open automatically.
+
+Development requests default to `http://localhost:8000`; run the [backend](https://github.com/cgaswin/algobridge-api) locally, or override the API URL.
 
 | Variable | Purpose |
 | --- | --- |

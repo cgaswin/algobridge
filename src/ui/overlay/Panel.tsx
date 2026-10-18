@@ -34,7 +34,7 @@ const ICON_BUTTON_CLASS =
 type AccordionId = 'approach' | 'topics';
 
 function splitSystemExample(example: string): { system: string; detail: string } {
-  const [system, ...rest] = example.split(' — ');
+  const [system = '', ...rest] = example.split(' — ');
   return { system, detail: rest.join(' — ') };
 }
 
